@@ -8,16 +8,7 @@ project(
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
-#set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lc++ -lc++abi")
 set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
-
-# Maybe not working(?)
-if (NOT DEFINED LIBS_SUFFIX)
-    message(NOTICE "You can to set the libs suffix: cmake -DLIBS_SUFFIX=\"suffix\" ...")
-else()
-    set(CMAKE_FIND_LIBRARY_SUFFIXES "${LIBS_SUFFIX}")
-endif()
 
 find_package(Boost CONFIG REQUIRED COMPONENTS system)
 find_package(spdlog REQUIRED)
