@@ -9,12 +9,18 @@
 #include <nlohmann/json.hpp>
 
 inline std::string getFilesPath() {
+    auto logger = spdlog::get("MLSystem");
+    if (!logger) {
+        spdlog::log(spdlog::level::critical, "The \"MLSystem\" logger is not registered, correct communication is not possible");
+        std::exit(-1);
+    }
+
     if (!std::getenv("HOME")) {
-        spdlog::get("MLSystem")->log(spdlog::level::err, "Failed to get files path: the HOME enivronment variable is not defined");
+        logger->log(spdlog::level::err, "Failed to get files path: the HOME enivronment variable is not defined");
         std::raise(SIGUSR1);
     } else {
         if (!std::filesystem::exists(std::string(std::getenv("HOME")) + "/.meetx") || std::filesystem::exists(std::string("HOME") + "/.meetx/translations")) {
-            spdlog::get("MLSystem")->log(spdlog::level::err, "Failed to get files path: '.meetx'/'.meetx/translations' directory does not exists");
+            logger->log(spdlog::level::err, "Failed to get files path: '.meetx'/'.meetx/translations' directory does not exists");
             std::raise(SIGUSR1);
         } else
             return std::string(std::string(std::getenv("HOME")) + "/.meetx/translations");
@@ -24,10 +30,16 @@ inline std::string getFilesPath() {
 static std::unordered_map<std::string, nlohmann::json> cached;
 
 std::string mlsys::getReplic(const std::string& file, const std::string& section, const std::string& replic) {
+    auto logger = spdlog::get("MLSystem");
+    if (!logger) {
+        spdlog::log(spdlog::level::critical, "The \"MLSystem\" logger is not registered, correct communication is not possible");
+        std::exit(-1);
+    }
+
     std::string targetFilePath = getFilesPath() + "/" + file;
 
     if (file.empty() || section.empty() || replic.empty()) {
-        spdlog::get("MLSystem")->log(spdlog::level::warn, "The file, section, or replic is not specified\nFile: {}; Section: {}; Replic: {}", file, section, replic);
+        logger->log(spdlog::level::warn, "The file, section, or replic is not specified\nFile: {}; Section: {}; Replic: {}", file, section, replic);
         return "If you see this text, the getReplic call was incorrect(the file, section, or replica is not specified)";
     }
 
@@ -35,19 +47,19 @@ std::string mlsys::getReplic(const std::string& file, const std::string& section
         auto restoredJson = cached[file];
         if (restoredJson.contains(section))
             if (restoredJson[section].contains(replic)) {
-                spdlog::get("MLSystem")->log(spdlog::level::info, "The replica is obtained from a cached nlohmann::json object!");
+                logger->log(spdlog::level::info, "The replica is obtained from a cached nlohmann::json object!");
                 return restoredJson[section][replic].get<std::string>();
             }
     }
 
     if (!std::filesystem::exists(targetFilePath)) {
-        spdlog::get("MLSystem")->log(spdlog::level::warn, "The translation file was not found\nFile: {}", file);
+        logger->log(spdlog::level::warn, "The translation file was not found\nFile: {}", file);
         return "If you see this text, the getReplic call was incorrect(the translation file was not found)";
     }
 
     std::ifstream jsonFile(targetFilePath);
     if (!jsonFile.is_open()) {
-        spdlog::get("MLSystem")->log(spdlog::level::warn, "Failed to open translations file\nFile: {}", file);
+        logger->log(spdlog::level::warn, "Failed to open translations file\nFile: {}", file);
         return "If you see this text, the getReplic call was incorrect(file stream open failed)";
     }
     nlohmann::json j; jsonFile >> j;
@@ -57,11 +69,11 @@ std::string mlsys::getReplic(const std::string& file, const std::string& section
             cached[file] = j;
             return j[section][replic].get<std::string>();
         } else {
-            spdlog::get("MLSystem")->log(spdlog::level::warn, "The replic was not found\nFile: {}; Section: {}; Replic: {}", file, section, replic);
+            logger->log(spdlog::level::warn, "The replic was not found\nFile: {}; Section: {}; Replic: {}", file, section, replic);
             return "If you see this text, the getReplic call was incorrect(replic was not found)";
         }
     } else {
-        spdlog::get("MLSystem")->log(spdlog::level::warn, "The section was not found in file\nFile: {}; Section: {}", file, section);
+        logger->log(spdlog::level::warn, "The section was not found in file\nFile: {}; Section: {}", file, section);
         return "If you see this text, the getReplic call was incorrect(section was not found)";
     }
 }
