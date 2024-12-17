@@ -8,6 +8,12 @@
 namespace db { extern std::shared_ptr<pqxx::connection> database; }
 
 User dbInteraction::GetUser(std::variant<std::int64_t, User> identificator) {
+    auto logger = spdlog::get("PSQL");
+    if (!logger) {
+        spdlog::log(spdlog::level::critical, "The \"PSQL\" logger is not registered, correct communication is not possible");
+        std::exit(-1);
+    }
+
     User result;
     std::int64_t id = (std::holds_alternative<std::int64_t>(identificator) ? std::get<std::int64_t>(identificator) : std::get<User>(identificator).id);
     pqxx::work w(*db::database);
@@ -38,7 +44,7 @@ User dbInteraction::GetUser(std::variant<std::int64_t, User> identificator) {
             result.hasProfile = i["hasProfile"].as<bool>();
         }
     } catch (std::exception& dberr) {
-        spdlog::get("PSQL")->log(spdlog::level::err, "Failed to get user: pqxx created an exception: {}", dberr.what());
+        logger->log(spdlog::level::err, "Failed to get user: pqxx created an exception: {}", dberr.what());
         return result;
     }
 

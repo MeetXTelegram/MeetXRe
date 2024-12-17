@@ -17,12 +17,17 @@ namespace init {
     static const std::string meetxTranslationsFolder = meetxFolder + "/translations";
 
     inline void initLoggers() {
+        spdlog::flush_every(std::chrono::seconds(1));
         auto nowTime = std::chrono::system_clock::now();
         auto nowTime_C = std::chrono::system_clock::to_time_t(nowTime);
         std::ostringstream formattedTime; formattedTime << std::put_time(std::localtime(&nowTime_C), "%F_%H_%M");
 
         auto stdoutSink = createStdoutSink;
         auto fileSink = createFileSink(meetxLogsFolder + "/MEETX_LOG_" + formattedTime.str() + ".txt");
+        if (!stdoutSink || !fileSink)
+            spdlog::log(spdlog::level::critical, "Failed to create sinks");
+        else
+            spdlog::log(spdlog::level::info, "Created sinks(console,file): filename: {}", fileSink->filename());
 
         loggingUtils::createLogger("SignalHandler", stdoutSink, fileSink, spdlog::level::trace);
         loggingUtils::createLogger("MAIN_LOGGER", stdoutSink, fileSink, spdlog::level::trace);
@@ -31,6 +36,7 @@ namespace init {
         loggingUtils::createLogger("PSQL", stdoutSink, fileSink, spdlog::level::trace);
         loggingUtils::createLogger("TgBotBackend", stdoutSink, fileSink, spdlog::level::trace);
         loggingUtils::createLogger("MLSystem", stdoutSink, fileSink, spdlog::level::trace);
+        loggingUtils::createLogger("TgBotFrontend", stdoutSink, fileSink, spdlog::level::trace);
     }
 
     inline void MeetXInit(ah::Args& argsHandler) {
@@ -42,7 +48,10 @@ namespace init {
             std::filesystem::create_directory(meetxTranslationsFolder);
 
         std::signal(SIGUSR1, signalsUtils::SIGUSR1Handler);
-        std::set_terminate(exceptionsUtils::TerminateHandler);
+        if (argsHandler.getArg("--no-terminate-handler").has_value())
+            spdlog::log(spdlog::level::info, "The terminate handler has been disabled");
+        else
+            std::set_terminate(exceptionsUtils::TerminateHandler);
         if (!argsHandler.getArg("dbname").has_value()) {
             spdlog::log(spdlog::level::critical, "Failed to init MeetX: the \"dbname\" argument is not provided");
             std::raise(SIGUSR1);
@@ -70,6 +79,7 @@ namespace init {
                    "id BIGINT PRIMARY KEY,"
                    "tgFirstName VARCHAR NOT NULL,"
                    "tgLastName VARCHAR,"
+                   "username VARCHAR,"
                    "age SMALLINT,"
                    "name VARCHAR NOT NULL,"
                    "bio VARCHAR,"

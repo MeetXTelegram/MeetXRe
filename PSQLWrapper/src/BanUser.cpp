@@ -6,14 +6,16 @@
 #include <Definitions.hpp>
 
 void dbInteraction::BanUser(std::variant<std::int64_t, User> identificator) {
-    std::int64_t id;
-    if (std::holds_alternative<std::int64_t>(identificator))
-        id = std::get<std::int64_t>(identificator);
-    else
-        id = std::get<User>(identificator).id;
+    auto logger = spdlog::get("PSQL");
+    if (!logger) {
+        spdlog::log(spdlog::level::critical, "The \"PSQL\" logger is not registered, correct communication is not possible");
+        std::exit(-1);
+    }
+
+    std::int64_t id = (std::holds_alternative<std::int64_t>(identificator) ? std::get<std::int64_t>(identificator) : std::get<User>(identificator).id);
 
     if (!IsExists(id)) {
-        spdlog::get("PSQL")->log(spdlog::level::err, "Failed to ban user: the user with id {} does not exists", id);
+        logger->log(spdlog::level::err, "Failed to ban user: the user with id {} does not exists", id);
         return;
     }
 
@@ -26,9 +28,9 @@ void dbInteraction::BanUser(std::variant<std::int64_t, User> identificator) {
                 ");");
         w.commit();
     } catch (std::exception& dberr) {
-        spdlog::get("PSQL")->log(spdlog::level::err, "Failed to ban user: pqxx made an exception: {}", dberr.what());
+        logger->log(spdlog::level::err, "Failed to ban user: pqxx made an exception: {}", dberr.what());
         return;
     }
 
-    spdlog::get("PSQL")->log(spdlog::level::info, "Banned user: id = {}", id);
+    logger->log(spdlog::level::info, "Banned user: id = {}", id);
 }

@@ -5,15 +5,21 @@
 #include <spdlog/spdlog.h>
 
 void meetx::MeetXStart(const std::string& token) {
+    auto logger = spdlog::get("TgBotBackend");
+    if (!logger) {
+        spdlog::log(spdlog::level::critical, "The \"TgBotBackend\" logger is not registered, correct communication is not possible");
+        std::exit(-1);
+    }
+
     if (token.empty()) {
         std::string tokenBuffer;
-        spdlog::get("TgBotBackend")->log(spdlog::level::info, "Write token:");
+        logger->log(spdlog::level::info, "Write token:");
         std::getline(std::cin, tokenBuffer);
-        setjmp(signalsUtils::programBuf);
+        sigsetjmp(signalsUtils::programBuf, 1);
         if (bot)
-            spdlog::get("TgBotBackend")->log(spdlog::level::warn, "The std::shared_ptr<TgBot::Bot> object already exists, it will be overwritten");
+            logger->log(spdlog::level::warn, "The std::shared_ptr<TgBot::Bot> object already exists, it will be overwritten");
         else
-            spdlog::get("TgBotBackend")->log(spdlog::level::info, "Created std::shared_ptr<TgBot> object with argument {}", tokenBuffer);
+            logger->log(spdlog::level::info, "Created std::shared_ptr<TgBot> object with argument {}", tokenBuffer);
         bot = std::make_shared<TgBot::Bot>(tokenBuffer);
     }
 }

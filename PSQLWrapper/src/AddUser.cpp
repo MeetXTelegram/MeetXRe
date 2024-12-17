@@ -8,15 +8,21 @@
 namespace db { extern std::shared_ptr<pqxx::connection> database; }
 
 AddUserResult dbInteraction::AddUser(User& user) {
+    auto logger = spdlog::get("PSQL");
+    if (!logger) {
+        spdlog::log(spdlog::level::critical, "The \"PSQL\" logger is not registered, correct communication is not possible");
+        std::exit(-1);
+    }
+
     if (!db::database) {
-        spdlog::get("PSQL")->log(spdlog::level::err, "Failed to add user: db::database is not valid(maybe init::MeetXInit didn't not called?)");
+        logger->log(spdlog::level::err, "Failed to add user: db::database is not valid(maybe init::MeetXInit didn't not called?)");
         std::raise(SIGUSR1);
     }
 
     pqxx::work w(*db::database);
     pqxx::result res = w.exec("SELECT * FROM users WHERE id = $1", user.id);
     if (!res.empty()) {
-        spdlog::get("PSQL")->log(spdlog::level::warn, "Failed to add user: it looks like the user with id {} already exists (use the updateUserInfo to update the information)", user.id);
+        logger->log(spdlog::level::warn, "Failed to add user: it looks like the user with id {} already exists (use the updateUserInfo to update the information)", user.id);
         return AddUserResult::ALREADY_EXISTS;
     } else {
         try {
@@ -25,6 +31,7 @@ AddUserResult dbInteraction::AddUser(User& user) {
                    "id,"
                    "tgFirstName,"
                    "tgLastName,"
+                   "username,"
                    "age,"
                    "name,"
                    "bio,"
@@ -45,6 +52,8 @@ AddUserResult dbInteraction::AddUser(User& user) {
                    w.esc(user.tgFirstName) +
                    "','" +
                    w.esc(user.tgLastName) +
+                   "','" +
+                   w.esc((user.username.empty() ? "" : user.username)) +
                    "'," +
                    std::to_string(user.age) +
                    ",'" +
@@ -68,14 +77,14 @@ AddUserResult dbInteraction::AddUser(User& user) {
                    "," +
                    w.esc(parsers::cast<UserGender, true, int>(user.preferredGenders)) +
                    "," +
-                   w.quote(true) +
+                   w.quote(user.hasProfile) +
                    ");");
             w.commit();
         } catch (std::exception& dberr) {
-            spdlog::get("PSQL")->log(spdlog::level::err, "Failed to add user: pqxx created an exception: {}", dberr.what());
+            logger->log(spdlog::level::err, "Failed to add user: pqxx created an exception: {}", dberr.what());
             return AddUserResult::DB_ERROR;
         }
-        spdlog::get("PSQL")->log(spdlog::level::info, "Added a new user: id = {}", user.id);
+        logger->log(spdlog::level::info, "Added a new user: id = {}", user.id);
         return AddUserResult::OK;
     }
 }

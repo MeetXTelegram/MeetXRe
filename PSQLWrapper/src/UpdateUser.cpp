@@ -6,11 +6,17 @@
 namespace db { extern std::shared_ptr<pqxx::connection> database; }
 
 void dbInteraction::UpdateUser(User& user) {
+    auto logger = spdlog::get("PSQL");
+    if (!logger) {
+        spdlog::log(spdlog::level::critical, "The \"PSQL\" logger is not registered, correct communication is not possible");
+        std::exit(-1);
+    }
+
     pqxx::work w(*db::database);
     try {
         pqxx::result checkUser = w.exec("SELECT * FROM users WHERE id = $1;", user.id);
         if (checkUser.empty()) {
-            spdlog::get("PSQL")->log(spdlog::level::warn, "Failed to update user: user with id {} was not found (use the addUser to add user)", user.id);
+            logger->log(spdlog::level::warn, "Failed to update user: user with id {} was not found (use the addUser to add user)", user.id);
             return;
         }
 
@@ -25,6 +31,6 @@ void dbInteraction::UpdateUser(User& user) {
 
         w.commit();
     } catch (std::exception& dberr) {
-        spdlog::get("PSQL")->log(spdlog::level::err, "Failed to update user: pqxx created an exception: {}", dberr.what());
+        logger->log(spdlog::level::err, "Failed to update user: pqxx created an exception: {}", dberr.what());
     }
 }
