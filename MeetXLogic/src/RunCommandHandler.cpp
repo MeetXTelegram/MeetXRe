@@ -8,6 +8,12 @@
 #include <Definitions.hpp>
 
 void meetx::handlers::RunCommandHandler(TgBot::Message::Ptr message) {
+    auto logger = spdlog::get("TgBotBackend");
+    if (!logger) {
+        spdlog::log(spdlog::level::critical, "The \"TgBotBackend\" logger is not registered, correct communication is not possible");
+        std::exit(-1);
+    }
+
     auto replyParameters = std::make_shared<TgBot::ReplyParameters>();
     replyParameters->messageId = message->messageId;
     replyParameters->chatId = message->chat->id;
@@ -16,7 +22,7 @@ void meetx::handlers::RunCommandHandler(TgBot::Message::Ptr message) {
     std::istringstream msgStream(message->text);
     msgStream >> dataBuffer;
     if (msgStream.eof()) {
-        spdlog::get("TgBotBackend")->log(spdlog::level::warn, "Calling /run without command and password");
+        logger->log(spdlog::level::warn, "Calling /run without command and password");
         bot->getApi().sendMessage(message->chat->id, "You need to provide a password and a command: \n/run [password] [command]", nullptr, replyParameters);
         return;
     } else {
@@ -24,15 +30,15 @@ void meetx::handlers::RunCommandHandler(TgBot::Message::Ptr message) {
         std::hash<std::string> passwordHasher;
         if (db::adminModePasswordHash == passwordHasher(dataBuffer)) {
             if (msgStream.eof()) {
-                spdlog::get("TgBotBackend")->log(spdlog::level::warn, "Attempting to execute the admin command, but the command is empty");
+                logger->log(spdlog::level::warn, "Attempting to execute the admin command, but the command is empty");
                 return;
             } else {
                 std::string command;
                 msgStream >> command;
-                spdlog::get("TgBotBackend")->log(spdlog::level::warn, "Attempting to execute the admin command: \"{}\"", command);
+                logger->log(spdlog::level::warn, "Attempting to execute the admin command: \"{}\"", command);
 
                 if (!runnersList.count(command)) {
-                    spdlog::get("TgBotBackend")->log(spdlog::level::warn, "Execute failed: command \"{}\" does not exists", command);
+                    logger->log(spdlog::level::warn, "Execute failed: command \"{}\" does not exists", command);
                     return;
                 } else {
                     if (msgStream.eof())
@@ -47,7 +53,7 @@ void meetx::handlers::RunCommandHandler(TgBot::Message::Ptr message) {
                 }
             }
         } else {
-            spdlog::get("TgBotBackend")->log(spdlog::level::warn, "Attempting to execute the admin command, but the hash does not match");
+            logger->log(spdlog::level::warn, "Attempting to execute the admin command, but the hash does not match");
             bot->getApi().sendMessage(message->chat->id, "Authentification error(incorrect password)", nullptr, replyParameters);
         }
     }

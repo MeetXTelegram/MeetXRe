@@ -12,7 +12,7 @@
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 
-#define createFileSink(file) std::make_shared<spdlog::sinks::basic_file_sink_mt>(file,true);
+#define createFileSink(file) (std::make_shared<spdlog::sinks::basic_file_sink_mt>((file), true))
 #define createStdoutSink std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
 
 namespace db {

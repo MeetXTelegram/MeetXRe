@@ -8,7 +8,13 @@
 #include <Definitions.hpp>
 
 namespace mlsys {
-    inline std::string castLanguageToFilename(UserLanguage ul) {
+    inline std::string castLanguageToFilename(UserLanguage ul = UserLanguage::EN) {
+        auto logger = spdlog::get("MLSystem");
+        if (!logger) {
+            spdlog::log(spdlog::level::critical, "The \"MLSystem\" logger is not registered, correct communication is not possible");
+            std::exit(-1);
+        }
+
         switch (ul) {
             case UserLanguage::BY: {
                 return "by_BY.json";
@@ -39,7 +45,7 @@ namespace mlsys {
             }
 
             default: {
-                spdlog::get("MLSystem")->log(spdlog::level::err, "Failed to cast language: undefined language({})", static_cast<int>(ul));
+                logger->log(spdlog::level::err, "Failed to cast language: undefined language({})", static_cast<int>(ul));
                 return "";
             }
         }

@@ -7,11 +7,13 @@
 #include <Definitions.hpp>
 
 bool dbInteraction::IsExists(std::variant<std::int64_t, User> identificator) {
-    std::int64_t id;
-    if (std::holds_alternative<std::int64_t>(identificator))
-        id = std::get<std::int64_t>(identificator);
-    else
-        id = std::get<User>(identificator).id;
+    auto logger = spdlog::get("PSQL");
+    if (!logger) {
+        spdlog::log(spdlog::level::critical, "The \"PSQL\" logger is not registered, correct communication is not possible");
+        std::exit(-1);
+    }
+
+    std::int64_t id = (std::holds_alternative<std::int64_t>(identificator) ? std::get<std::int64_t>(identificator) : std::get<User>(identificator).id);
 
     pqxx::work w(*db::database);
     try {
@@ -21,7 +23,7 @@ bool dbInteraction::IsExists(std::variant<std::int64_t, User> identificator) {
         else
             return true;
     } catch (std::exception& dberr) {
-        spdlog::get("PSQLW")->log(spdlog::level::err, "Failed to check user: pqxx made an exception: {}", dberr.what());
+        logger->log(spdlog::level::err, "Failed to check user: pqxx made an exception: {}", dberr.what());
         return false;
     }
 }

@@ -5,12 +5,11 @@
 #include <unordered_map>
 #include <vector>
 
-
-#include <pqxx/pqxx>
 #include <tgbot/tgbot.h>
 
 #include <Ban.hpp>
 #include <Repassword.hpp>
+#include <Show.hpp>
 #include <Unban.hpp>
 
 namespace db {
@@ -30,6 +29,7 @@ namespace meetx {
         runnersList["repassword"] = runners::Repassword;
         runnersList["ban"] = runners::Ban;
         runnersList["unban"] = runners::Unban;
+        runnersList["show"] = runners::Show;
     }
 
     namespace handlers {

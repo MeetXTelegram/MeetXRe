@@ -24,6 +24,7 @@ namespace dbInteraction {
     bool IsExists(std::variant<std::int64_t, User> identificator);
     bool IsBanned(std::variant<std::int64_t, User> identificator);
     void BanUser(std::variant<std::int64_t, User> identificator);
+    void UnbanUser(std::variant<std::int64_t, User> identificator);
 }
 
 namespace parsers {

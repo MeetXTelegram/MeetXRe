@@ -4,3 +4,9 @@
 [submodule "thirdParty/tgbot"]
 	path = thirdParty/tgbot
 	url = https://github.com/username000101/tgbot-cpp
+[submodule "thirdParty/pqxx"]
+	path = thirdParty/pqxx
+	url = https://github.com/jtv/libpqxx.git
+[submodule "thirdParty/spdlog"]
+	path = thirdParty/spdlog
+	url = https://github.com/gabime/spdlog
