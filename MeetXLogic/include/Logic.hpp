@@ -8,8 +8,10 @@
 #include <tgbot/tgbot.h>
 
 #include <Ban.hpp>
+#include <Definitions.hpp>
 #include <Repassword.hpp>
 #include <Show.hpp>
+#include <ShowProfile.hpp>
 #include <Unban.hpp>
 
 namespace db {
@@ -21,6 +23,7 @@ namespace signalsUtils {
 }
 
 namespace meetx {
+    extern CreateProfileStep createProfileStep;
     extern std::shared_ptr<TgBot::Bot> bot;
     void MeetXStart(const std::string& token = "");
 
@@ -30,6 +33,14 @@ namespace meetx {
         runnersList["ban"] = runners::Ban;
         runnersList["unban"] = runners::Unban;
         runnersList["show"] = runners::Show;
+    }
+
+    extern std::unordered_map<std::string, std::unordered_map<std::string,
+                              void(*)(TgBot::CallbackQuery::Ptr query,
+                              std::vector<std::string>)>> actionsList;
+
+    inline void InitActions() {
+        actionsList["show"]["profile"] = actions::ShowProfile;
     }
 
     namespace handlers {

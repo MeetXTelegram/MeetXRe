@@ -34,6 +34,21 @@ namespace exceptionsUtils {
 }
 
 
+enum class CreateProfileStep {
+    NONE,
+    NAME,
+    AGE,
+    PREFERRED_AGES,
+    GENDER,
+    PREFERRED_GENDERS,
+    BIO,
+    LANGUAGE,
+    PREFERRED_LANGUAGES,
+    CITY,
+    PREFERRED_CITIES,
+    FINISHED,
+};
+
 enum class UserLanguage {
     RU = 1, /* Russian */
     EN = 2, /* English */

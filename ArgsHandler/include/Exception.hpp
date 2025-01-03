@@ -20,7 +20,7 @@ namespace ah {
 
         class InvalidArgsArray : public std::exception {
         public:
-            InvalidArgsArray(std::variant<std::vector<std::string>, char**> array, const std::string whatt) : what_(whatt) {
+            InvalidArgsArray(std::variant<std::vector<std::string>, char**> array, const std::string& whatt) : what_(whatt) {
                 if (std::holds_alternative<std::vector<std::string>>(array))
                     this->array_ = std::get<std::vector<std::string>>(array);
                 else {

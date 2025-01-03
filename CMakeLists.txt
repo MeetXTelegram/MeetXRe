@@ -80,6 +80,8 @@ add_executable(MeetXRe
 
     ${Runners_INC}
     ${Runners_SRC}
+		MeetXLogic/Actions/include/ShowProfile.hpp
+		MeetXLogic/Actions/src/ShowProfile.cpp
 )
 
 target_link_libraries(MeetXRe PRIVATE spdlog::spdlog libpqxx::pqxx nlohmann_json::nlohmann_json ${PostgreSQL_LIBRARIES} TgBot ${Boost_LIBRARIES})

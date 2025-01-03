@@ -23,12 +23,14 @@ void meetx::handlers::StartCommandHandler(TgBot::Message::Ptr message) {
         return;
     }
 
-    if (dbInteraction::IsExists(message->from->id)) {
+    if (dbInteraction::IsExists(message->from->id))
+    {
+
         auto user = dbInteraction::GetUser(message->from->id);
 
         auto buttonMyProfile = std::make_shared<TgBot::InlineKeyboardButton>();
         buttonMyProfile->text = mlsys::getReplic(mlsys::castLanguageToFilename(user.language), "buttons", "button_my_profile");
-        buttonMyProfile->callbackData = fmt::vformat("!show profile {}", fmt::make_format_args(user.id));
+        buttonMyProfile->callbackData = fmt::vformat("!show profile {}", fmt::make_format_args(message->from->id));
 
         auto buttonCreateProfile = std::make_shared<TgBot::InlineKeyboardButton>();
         buttonCreateProfile->text = mlsys::getReplic(mlsys::castLanguageToFilename(user.language), "buttons", "button_create_profile");
@@ -38,8 +40,16 @@ void meetx::handlers::StartCommandHandler(TgBot::Message::Ptr message) {
         buttonChangeLanguage->text = mlsys::getReplic(mlsys::castLanguageToFilename(user.language), "buttons", "button_change_language");
         buttonChangeLanguage->callbackData = "!show menu changelanguage";
 
+        auto buttonSupport = std::make_shared<TgBot::InlineKeyboardButton>();
+        buttonSupport->text = mlsys::getReplic(mlsys::castLanguageToFilename(user.language), "buttons", "button_support");
+        buttonSupport->url = "https://t.me/meetx_discussion";
+
         auto keyboard = std::make_shared<TgBot::InlineKeyboardMarkup>();
-        keyboard->inlineKeyboard.push_back({{buttonMyProfile, buttonCreateProfile, buttonChangeLanguage}});
+        //keyboard->inlineKeyboard.push_back({buttonMyProfile, buttonCreateProfile, buttonChangeLanguage, buttonSupport});
+        keyboard->inlineKeyboard.push_back({buttonMyProfile});
+        keyboard->inlineKeyboard.push_back({buttonCreateProfile});
+        keyboard->inlineKeyboard.push_back({buttonChangeLanguage});
+        keyboard->inlineKeyboard.push_back({buttonSupport});
 
         bot->getApi().sendMessage(message->chat->id, fmt::vformat(mlsys::getReplic(mlsys::castLanguageToFilename(user.language), "commands", "command_start"), fmt::make_format_args(user.name)), nullptr, replyParameters, keyboard);
         return;

@@ -23,6 +23,9 @@ void meetx::MainLoop() {
     auto botInfo = bot->getApi().getMe();
     logger->log(spdlog::level::info, "Bot info:\n\tusername: {}\n\tfirst_name: {}", botInfo->username, botInfo->firstName);
 
+    bot->getEvents().onNonCommandMessage([](TgBot::Message::Ptr message) {
+
+    });
     bot->getEvents().onCallbackQuery(actions::PreActionHandler);
     bot->getEvents().onCommand("help", handlers::HelpCommandHandler);
     bot->getEvents().onCommand("start", handlers::StartCommandHandler);
@@ -37,7 +40,7 @@ void meetx::MainLoop() {
             lpoll.start();
         }
     } catch (TgBot::TgException& apierr) {
-        logger->log(spdlog::level::err, "The bot spawned an exception: {}", apierr.what());
+        logger->log(spdlog::level::err, "The bot created an exception: {}", apierr.what());
         std::raise(SIGUSR1);
     }
 }

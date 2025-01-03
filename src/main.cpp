@@ -12,5 +12,6 @@ int main(int argc, char* argv[]) {
     init::MeetXInit(args);
     meetx::MeetXStart();
     meetx::InitRunners();
+    meetx::InitActions();
     meetx::MainLoop();
 }
